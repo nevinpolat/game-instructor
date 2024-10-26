@@ -10,7 +10,9 @@ __pycache__/
 # Ignore Streamlit secrets
 .streamlit/secrets.toml
 >>>>>>> 1165708 (Initial commit with a clean history)
-
+# Ignore Streamlit secrets
+.streamlit/secrets.toml
+game-instructor/.streamlit/secrets.toml
 # Distribution / packaging
 .Python
 build/
