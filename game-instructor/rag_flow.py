@@ -1,5 +1,3 @@
-# rag_flow.py
-
 import weaviate
 from weaviate import Client
 from models import SearchedGame
@@ -21,7 +19,7 @@ def check_if_game_related(question):
     Determines if the question is related to games using the GPT-4o-mini model via OpenAI API.
     Returns True if related, False otherwise.
     """
-    prompt = f"Is the following question related to games? Answer with 'Yes' or 'No'.\nQuestion: {question}"
+    prompt = f"Determine if the following question is related to games. Answer with 'Yes' or 'No'.\n\nQuestion: \"{question}\""
     try:
         response = call_gpt_4o_mini(prompt)
         return 'yes' in response.lower()
@@ -41,7 +39,7 @@ def call_gpt_4o_mini(prompt):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,  # Increased tokens to prevent cut-off
+            max_tokens=500,  # Adjusted tokens
             temperature=0.0  # For deterministic output
         )
         # Access the content of the message correctly
@@ -51,6 +49,33 @@ def call_gpt_4o_mini(prompt):
         st.error(f"🚨 OpenAI API Request Error: {e}")
         st.error(traceback.format_exc())
         return "No"
+
+# Function to preprocess the question using query rewriting techniques
+def preprocess_query(question):
+    """
+    Applies query rewriting techniques to the user's question.
+    """
+    # Create a prompt that instructs the model to apply the techniques
+    prompt = f"""
+Please rewrite the following question by applying the following query rewriting techniques:
+
+1. Correct any spelling mistakes.
+2. Simplify the question to be more straightforward and easily understandable.
+3. Replace words with synonyms where appropriate to broaden the search results.
+4. Handle any negative queries correctly by rephrasing them to reflect the true intent.
+5. Paraphrase the question while maintaining its original meaning.
+
+Original Question: "{question}"
+
+Rewritten Question:
+"""
+    try:
+        rewritten_question = call_gpt_4o_mini(prompt)
+        return rewritten_question.strip()
+    except Exception as e:
+        st.error(f"🚨 Error preprocessing query with GPT-4o-mini: {e}")
+        st.error(traceback.format_exc())
+        return question  # Return the original question if an error occurs
 
 # Function to search Weaviate using pure vector search
 def search_weaviate(question, client, k=1):
@@ -89,7 +114,7 @@ def search_weaviate(question, client, k=1):
             )
             .with_near_vector({
                 "vector": query_vector,
-                "certainty": 0.5  # Lowered certainty threshold
+                "certainty": 0.7  # Lowered certainty threshold
             })
             .with_limit(k)
             .do()
@@ -182,24 +207,31 @@ def get_answer(question, user_id, session_db, k=1, hybrid=False, weaviate_client
         hybrid (bool): Whether to use hybrid search.
         weaviate_client: Weaviate client instance.
     Returns:
-        dict: Contains 'is_related' (bool), 'message' (str), and 'answers' (list) if applicable.
+        dict: Contains 'is_related' (bool), 'message' (str), 'rewritten_question' (str), and 'answers' (list) if applicable.
     """
-    # Check if the question is game-related
-    is_related = check_if_game_related(question)
+    # Preprocess the question using query rewriting techniques
+    preprocessed_question = preprocess_query(question)
+
+    # Check if either the original or the rewritten question is game-related
+    is_related_original = check_if_game_related(question)
+    is_related_rewritten = check_if_game_related(preprocessed_question)
+    is_related = is_related_original or is_related_rewritten
+
     if not is_related:
         return {
             'is_related': False,
-            'message': "Your question does not appear to be related to games. Please ask a game-related question."
+            'message': "Your question does not appear to be related to games. Please ask a game-related question.",
+            'rewritten_question': preprocessed_question
         }
     else:
-        # Search Weaviate using pure vector search
-        results = search_weaviate(question, weaviate_client, k=k)
+        # Search Weaviate using the preprocessed question
+        results = search_weaviate(preprocessed_question, weaviate_client, k=k)
         if results:
             answers = []
             for result in results:
                 game_id = result.get('gameId')
                 # Generate an answer using GPT-4o-mini
-                answer_text = generate_answer_from_game_info(result, question)
+                answer_text = generate_answer_from_game_info(result, preprocessed_question)
                 answer = {
                     'game_name': result.get('gameName', 'Unknown Game'),
                     'answer': answer_text,
@@ -213,10 +245,12 @@ def get_answer(question, user_id, session_db, k=1, hybrid=False, weaviate_client
                 answers.append(answer)
             return {
                 'is_related': True,
-                'answers': answers
+                'answers': answers,
+                'rewritten_question': preprocessed_question
             }
         else:
             return {
                 'is_related': True,
-                'message': "No relevant games found for your question."
+                'message': "I couldn't find any games matching your question. Please try rephrasing or ask about another game.",
+                'rewritten_question': preprocessed_question
             }

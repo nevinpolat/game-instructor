@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 from rag_flow import get_answer
 from sqlalchemy import create_engine
@@ -201,7 +199,8 @@ def load_chat_history_from_db(user_id):
             "game_id": entry.game_id,
             "is_related": entry.is_related,
             "feedback_id": entry.feedback_id,
-            "feedback_type": feedback_type
+            "feedback_type": feedback_type,
+            "rewritten_question": None  # You may need to add this field to your database to store rewritten question
         })
     session.close()
     return chat_history
@@ -346,8 +345,8 @@ elif page == "Ask Questions":
                 if question_count >= 3:
                     st.warning("⚠️ You have reached the maximum of 3 questions allowed.")
                 else:
-                    with st.spinner("🔍 Determining if your question is related to games..."):
-                        is_related = get_answer(
+                    with st.spinner("🔍 Processing your question..."):
+                        answer_result = get_answer(
                             user_query.strip(),
                             st.session_state['user_id'],
                             SessionLocal(),  # Pass a new session instance
@@ -356,9 +355,12 @@ elif page == "Ask Questions":
                             weaviate_client=client
                         )
 
-                    if is_related['is_related']:
-                        if "answers" in is_related:
-                            for idx, ans in enumerate(is_related["answers"], 1):
+                    if answer_result['is_related']:
+                        rewritten_question = answer_result.get('rewritten_question', '')
+                        if rewritten_question and rewritten_question != user_query.strip():
+                            st.markdown(f"**Rewritten Question:** {rewritten_question}")
+                        if "answers" in answer_result:
+                            for idx, ans in enumerate(answer_result["answers"], 1):
                                 st.subheader(f"**Game Name:** {ans['game_name']}")
                                 st.write(ans["answer"])
                                 feedback_id, chat_id = save_chat_history_to_db(
@@ -374,24 +376,49 @@ elif page == "Ask Questions":
                                     "game_id": ans["game_id"],
                                     "is_related": True,
                                     "feedback_id": feedback_id,
-                                    "feedback_type": 'neutral'
+                                    "feedback_type": 'neutral',
+                                    "rewritten_question": rewritten_question
                                 })
+                        else:
+                            st.warning(answer_result['message'])
+                            rewritten_question = answer_result.get('rewritten_question', '')
+                            if rewritten_question and rewritten_question != user_query.strip():
+                                st.markdown(f"**Rewritten Question:** {rewritten_question}")
+                            feedback_id, chat_id = save_chat_history_to_db(
+                                user_id=st.session_state['user_id'],
+                                question=user_query.strip(),
+                                answer=answer_result['message'],
+                                is_related=True
+                            )
+                            st.session_state['chat_history'].append({
+                                "question": user_query.strip(),
+                                "answer": answer_result['message'],
+                                "game_id": None,
+                                "is_related": True,
+                                "feedback_id": feedback_id,
+                                "feedback_type": 'neutral',
+                                "rewritten_question": rewritten_question
+                            })
                     else:
                         # Save the non-related question and the message
-                        st.warning(is_related['message'])
+                        st.warning(answer_result['message'])
+                        rewritten_question = answer_result.get('rewritten_question', '')
+                        if rewritten_question and rewritten_question != user_query.strip():
+                            st.markdown(f"**Rewritten Question:** {rewritten_question}")
                         feedback_id, chat_id = save_chat_history_to_db(
                             user_id=st.session_state['user_id'],
                             question=user_query.strip(),
-                            answer=is_related['message'],
+                            answer=answer_result['message'],
                             is_related=False
                         )
                         st.session_state['chat_history'].append({
                             "question": user_query.strip(),
-                            "answer": is_related['message'],
+                            "answer": answer_result['message'],
                             "game_id": None,
                             "is_related": False,
                             "feedback_id": feedback_id,
-                            "feedback_type": 'neutral'
+                            "feedback_type": 'neutral',
+                            "rewritten_question": rewritten_question
                         })
                 st.session_state['last_activity'] = datetime.utcnow()
             except Exception as e:
@@ -404,6 +431,9 @@ elif page == "Ask Questions":
             total_questions = len(st.session_state['chat_history'])
             for idx, chat in enumerate(st.session_state['chat_history'], 1):
                 st.markdown(f"**Q{idx}:** {chat['question']}")
+                rewritten_question = chat.get('rewritten_question', '')
+                if rewritten_question and rewritten_question != chat['question']:
+                    st.markdown(f"**Rewritten Question:** {rewritten_question}")
                 st.markdown(f"**A{idx}:**\n{chat['answer']}", unsafe_allow_html=True)
 
                 if chat.get('game_id'):
@@ -456,7 +486,7 @@ elif page == "Ask Questions":
         st.warning("🔒 Please log in to ask questions.")
 
 elif page == "Analytics":
-    st.title("📈 Comprehensive Analytics Dashboard")
+    #st.title("📈 Comprehensive Analytics Dashboard")
     session = SessionLocal()
     analytics.show_analytics(session)
     session.close()

@@ -65,7 +65,7 @@ def user_analytics(session: Session):
             names='Gender', 
             values='Count',
             color='Gender',
-            color_discrete_sequence=px.colors.sequential.Purples
+            color_discrete_sequence=px.colors.sequential.Reds
         )
         fig_gender.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_gender, use_container_width=True)
@@ -83,9 +83,9 @@ def user_analytics(session: Session):
             x='Age', 
             nbins=20,
             labels={'Age': 'Age'},
-            color_discrete_sequence=px.colors.sequential.Blues
+            color_discrete_sequence=px.colors.sequential.Reds
         )
-        fig_age.update_traces(opacity=0.75)
+        fig_age.update_traces(opacity=0.95)
         fig_age.update_layout(
             xaxis_title="Age",
             yaxis_title="Number of Users",
@@ -111,7 +111,7 @@ def user_analytics(session: Session):
             y='New Users',
             markers=True,
             labels={'Month': 'Month', 'New Users': 'Number of New Users'},
-            color_discrete_sequence=px.colors.sequential.Oranges
+            color_discrete_sequence=px.colors.sequential.Reds
         )
         fig_new_users.update_layout(
             xaxis=dict(
@@ -153,7 +153,7 @@ def feedback_analytics(session: Session):
             values='Count',
             hole=0.4,
             color='Feedback Type',
-            color_discrete_sequence=px.colors.sequential.RdBu
+            color_discrete_sequence=px.colors.sequential.Blues
         )
         fig_feedback_types.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_feedback_types, use_container_width=True)
@@ -176,7 +176,7 @@ def feedback_analytics(session: Session):
             y='Feedback Count',
             markers=True,
             labels={'Month': 'Month', 'Feedback Count': 'Number of Feedbacks'},
-            color_discrete_sequence=px.colors.sequential.Greens
+            color_discrete_sequence=px.colors.sequential.Oranges
         )
         fig_feedback_time.update_layout(
             xaxis=dict(
@@ -256,7 +256,7 @@ def game_analytics(session: Session):
             orientation='h',
             text='Search Count',
             color='Search Count',
-            color_continuous_scale=px.colors.sequential.Plasma
+            color_continuous_scale=px.colors.sequential.Viridis
         )
         fig_top_games.update_traces(texttemplate='%{text}', textposition='outside')
         fig_top_games.update_layout(
@@ -284,7 +284,7 @@ def game_analytics(session: Session):
             values='Count',
             hole=0.4,
             color='Category',
-            color_discrete_sequence=px.colors.sequential.Plasma
+            color_discrete_sequence=px.colors.sequential.Rainbow
         )
         fig_category_pie.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_category_pie, use_container_width=True)
@@ -297,7 +297,7 @@ def game_analytics(session: Session):
             orientation='h',
             text='Count',
             color='Count',
-            color_continuous_scale=px.colors.sequential.Plasma
+            color_continuous_scale=px.colors.sequential.Rainbow
         )
         fig_category_bar.update_traces(texttemplate='%{text}', textposition='outside')
         fig_category_bar.update_layout(
@@ -325,7 +325,7 @@ def game_analytics(session: Session):
             values='Count',
             hole=0.4,
             color='Subcategory',
-            color_discrete_sequence=px.colors.sequential.Plasma
+            color_discrete_sequence=px.colors.sequential.algae
         )
         fig_subcategory_pie.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_subcategory_pie, use_container_width=True)
@@ -338,7 +338,7 @@ def game_analytics(session: Session):
             orientation='h',
             text='Count',
             color='Count',
-            color_continuous_scale=px.colors.sequential.Plasma
+            color_continuous_scale=px.colors.sequential.Oranges
         )
         fig_subcategory_bar.update_traces(texttemplate='%{text}', textposition='outside')
         fig_subcategory_bar.update_layout(
@@ -366,7 +366,7 @@ def game_analytics(session: Session):
             y='Search Count',
             markers=True,
             labels={'Month': 'Month', 'Search Count': 'Number of Searches'},
-            color_discrete_sequence=px.colors.sequential.Blues
+            color_discrete_sequence=px.colors.sequential.Oranges
         )
         fig_search_time.update_layout(
             xaxis=dict(
@@ -409,7 +409,7 @@ def chat_history_analytics(session: Session):
             y='Chat Count',
             markers=True,
             labels={'Month': 'Month', 'Chat Count': 'Number of Chats'},
-            color_discrete_sequence=px.colors.sequential.RdBu
+            color_discrete_sequence=px.colors.sequential.Oranges
         )
         fig_chats_time.update_layout(
             xaxis=dict(
@@ -439,7 +439,7 @@ def chat_history_analytics(session: Session):
             values='Count',
             hole=0.4,
             color='Is Related',
-            color_discrete_sequence=px.colors.sequential.PuBu
+            color_discrete_sequence=px.colors.sequential.Rainbow
         )
         fig_related_pie.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_related_pie, use_container_width=True)
@@ -452,7 +452,7 @@ def chat_history_analytics(session: Session):
             orientation='h',
             text='Count',
             color='Count',
-            color_continuous_scale=px.colors.sequential.PuBu
+            color_continuous_scale=px.colors.sequential.Viridis
         )
         fig_related_bar.update_traces(texttemplate='%{text}', textposition='outside')
         fig_related_bar.update_layout(
@@ -483,7 +483,7 @@ def chat_history_analytics(session: Session):
             orientation='h',
             text='Count',
             color='Count',
-            color_continuous_scale=px.colors.sequential.RdBu
+            color_continuous_scale=px.colors.sequential.Purples
         )
         fig_common_questions.update_traces(texttemplate='%{text}', textposition='outside')
         fig_common_questions.update_layout(
@@ -514,25 +514,25 @@ def search_performance_metrics(session: Session):
             "Document Reranking"
         ],
         "Hit Rate@10": [
-            0.5620,
-            0.7844,
-            0.9498,
-            0.9841,
-            0.9841
+            0.5519,
+            0.8146,
+            0.9515,
+            0.9715,
+            0.9715
         ],
         "MRR@10": [
-            0.2922,
-            0.4825,
-            0.7458,
-            0.8231,
-            0.8222
+            0.2861,
+            0.5880,
+            0.7799,
+            0.8177,
+            0.8146
         ]
     }
 
     df = pd.DataFrame(data)
 
     # Display the DataFrame with visible tables using st.dataframe for better styling
-    st.markdown("### Search Methods Performance Metrics")
+    st.markdown("### Key Metrics")
     styled_table = df.style.format({
         "Hit Rate@10": "{:.2%}", 
         "MRR@10": "{:.2%}"
@@ -554,7 +554,7 @@ def search_performance_metrics(session: Session):
         labels={"Hit Rate@10": "Hit Rate@10"},
         height=300
     )
-    fig_hit.update_traces(texttemplate='%{text:.2%}', textposition='outside')
+    fig_hit.update_traces(texttemplate='%{text:.2%}', textposition='inside')
     fig_hit.update_layout(
         uniformtext_minsize=8,
         uniformtext_mode='hide',
@@ -576,7 +576,7 @@ def search_performance_metrics(session: Session):
         labels={"MRR@10": "MRR@10"},
         height=300
     )
-    fig_mrr.update_traces(texttemplate='%{text:.2%}', textposition='outside')
+    fig_mrr.update_traces(texttemplate='%{text:.2%}', textposition='inside')
     fig_mrr.update_layout(
         uniformtext_minsize=8,
         uniformtext_mode='hide',

@@ -3,8 +3,7 @@
 import weaviate
 
 # Initialize Weaviate client
-#client = weaviate.Client("http://localhost:8080")  # Adjust the URL if needed
-client = weaviate.Client("http://weaviate:8080")  # Use the service name defined in docker-compose
+client = weaviate.Client("http://localhost:8080")  # Adjust the URL if needed
 
 def create_schema():
     # Clear the existing schema (optional, use with caution)
