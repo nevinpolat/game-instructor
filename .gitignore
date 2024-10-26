@@ -5,6 +5,11 @@ __pycache__/
 
 # C extensions
 *.so
+<<<<<<< HEAD
+=======
+# Ignore Streamlit secrets
+.streamlit/secrets.toml
+>>>>>>> 1165708 (Initial commit with a clean history)
 
 # Distribution / packaging
 .Python
